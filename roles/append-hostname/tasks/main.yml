@@ -1,4 +1,18 @@
 ---
+- name: Get public IP of VM
+  uri:
+    url: http://169.254.169.254/latest/meta-data/public-ipv4
+    return_content: yes
+  register: server_public_ip_all
+
+- name: Get only the content of the previous request
+  set_fact:
+    server_public_ip: "{{ server_public_ip_all['content'] }}"
+
+- name: Construct Compute Canada's default FQDN
+  set_fact:
+    server_fqdn_CC: "{{ server_public_ip | regex_replace('\\.', '-') }}.{{ CC_public_domain }}"
+    
 
 - name: Set FQDN from server_fqdn_CC if other domain name not specified
   set_fact:
