@@ -1,0 +1,18 @@
+---
+
+- name: Set FQDN from server_fqdn_CC if other domain name not specified
+  set_fact:
+    server_fqdn: "{{ server_fqdn_CC }}"
+  when: domain_name is undefined
+    
+- name: Set FQDN from given domain name if specified
+  set_fact:
+    server_fqdn: "{{ domain_name }}"
+  when: domain_name is defined
+  
+- name: Ensure FQDN correctly set in /etc/hosts
+  lineinfile:
+    path: "/etc/hosts"
+    state: present
+    regexp: "^{{ server_public_ip }} .* {{ ansible_hostname }}$"
+    line: "{{ server_public_ip }} {{ server_fqdn }} {{ ansible_hostname }}"
