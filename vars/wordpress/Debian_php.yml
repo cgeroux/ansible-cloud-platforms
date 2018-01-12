@@ -1,0 +1,12 @@
+---
+# PHP role variables
+php_memory_limit: "128M"
+php_max_execution_time: "90"
+php_upload_max_filesize: "256M"
+php_packages:
+- php
+- php-cli
+- php-common
+- php-gd
+- php-xml
+- libapache2-mod-php

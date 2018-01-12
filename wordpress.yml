@@ -1,80 +1,84 @@
 ---
-- hosts: all
+- hosts: vm2
   become: yes
+  gather_facts: false
   
-  vars:
+  pre_tasks:
     
-    #append-hostname variables
-    CC_public_domain: "cloud.computecanada.ca"
-    server_public_ip: "{{ lookup('pipe', 'curl http://169.254.169.254/latest/meta-data/public-ipv4') }}"
-    server_fqdn_CC: "{{ server_public_ip | regex_replace('\\.', '-') }}.{{ CC_public_domain }}"
+    - name: Install python2 for Ansible
+      raw: bash -c "test -e /usr/bin/python || (apt -qqy update && apt install -qqy python-minimal)"
+      register: output
+      changed_when: output.stdout != ""
+      
+    - name: Gathering Facts
+      setup:
+  
+    - name: "Load role variables"
+      include_vars: "./vars/{{ item }}.yml"
+      with_items:
+        - "append-hostname"
+        - "apache"
+        - "openssl"
     
-    # OpenSSL role variables
-    openssl_certs_path: "/etc/ssl/certs/apache-selfsigned.crt"
-    openssl_keys_path: "/etc/ssl/private/apache-selfsigned.key"
-    openssl_default_key_owner: root
-    openssl_default_key_group: root
-    openssl_default_cert_owner: root
-    openssl_default_cert_group: root
+    - name: "Load OS specific variables for mysql role"
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+          - "./vars/{{ ansible_distribution }}-{{ ansible_distribution_version }}_mysql.yml"
+          - "./vars/{{ ansible_distribution }}-{{ ansible_distribution_release }}_mysql.yml"
+          - "./vars/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}_mysql.yml"
+          - "./vars/{{ ansible_distribution }}_mysql.yml"
+          - "./vars/{{ ansible_os_family }}_mysql.yml"
+          - "./vars/mysql.yml"
+    - debug:
+        msg: "mysql_packages={{mysql_packages}}"
     
-    openssl_config:
-      default_bits: 2048
-      countryName_default: "CA"
-      stateOrProvinceName_default: "Vancouver"
-      localityName_default: "British Columbia"
-      organizationName_default: "UBC"
-      organizationalUnitName_default: "ARC"
-      commonName_default: "{{ server_fqdn }}"
+    - name: "Load role variables for wordpress play"
+      include_vars: "./vars/wordpress/{{ item }}.yml"
+      with_items:
+        - "mysql"
     
-    openssl_self_signed:
-    - name: "{{ server_fqdn }}"
-      domains:
-      - "{{ server_fqdn }}"
-      country: "{{ openssl_config.countryName_default }}"
-      state: "{{ openssl_config.stateOrProvinceName_default }}"
-      city: "{{ openssl_config.localityName_default }}"
-      organization: "{{ openssl_config.organizationName_default }}"
-      unit: "{{ openssl_config.organizationalUnitName_default }}"
-      email: "support@computecanada.ca"
-      days: "3650"
+    - name: "Get mysql password from password-file"
+      include_role: 
+        name: password-file
+      vars:
+        path: /root
+        pass_id: mysql_root
+        pass_len: 32
     
-    # Apache role variables
-    web_document_root: "/var/www/html"
-
-    apache_remove_default_vhost: true
-
-    apache_vhosts:
-    - servername: "{{ server_fqdn }}"
-      documentroot: "{{ web_document_root }}"
-      extra_parameters: |
-        Redirect permanent "/" "https://{{ server_fqdn }}/"
-
-    apache_vhosts_ssl:
-    - servername: "{{ server_fqdn }}"
-      documentroot: "{{ web_document_root }}"
-      certificate_file: "{{ openssl_certs_path }}/{{ server_fqdn }}.crt"
-      certificate_key_file: "{{ openssl_keys_path }}/{{ server_fqdn }}.key"
-
-    apache_ssl_protocol: "All -SSLv2 -SSLv3"
-    apache_ssl_cipher_suite: "AES256+EECDH:AES256+EDH"
+    - set_fact:
+        mysql_root_password: "{{ passwords.mysql_root }}"
     
-    # PHP role variables
-    php_memory_limit: "128M"
-    php_max_execution_time: "90"
-    php_upload_max_filesize: "256M"
-    php_packages:
-    - php
-    - php-cli
-    - php-common
-    - php-gd
-    - php-xml
-    - libapache2-mod-php
+    - name: "Get mysql password from password-file"
+      include_role: 
+        name: password-file
+      vars:
+        path: /root
+        pass_id: mysql_wordpress
+        pass_len: 32
     
+    #add mysql password to mysql_users[0] dictionary
+    - set_fact:
+        tmp: '{"password":"{{ passwords.mysql_wordpress }}" }'
+    - set_fact:
+        mysql_users: "[ {{ mysql_users[0]|combine( tmp ) }} ]"
+    - debug:
+        msg: "mysql_users={{ mysql_users }}"
+      
+    - name: "Load OS specific variables for php role as needed for wordpress play"
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+          - "./vars/wordpress/{{ ansible_distribution }}-{{ ansible_distribution_version }}_php.yml"
+          - "./vars/wordpress/{{ ansible_distribution }}-{{ ansible_distribution_release }}_php.yml"
+          - "./vars/wordpress/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}_php.yml"
+          - "./vars/wordpress/{{ ansible_distribution }}_php.yml"
+          - "./vars/wordpress/{{ ansible_os_family }}_php.yml"
   roles:
-  - append-hostname
-  - geerlingguy.apache
-  - franklinkim.openssl
-  - geerlingguy.php
-#  - geerlingguy.mysql
+    - append-hostname
+    - geerlingguy.apache
+    - franklinkim.openssl
+    - geerlingguy.php
+    - geerlingguy.mysql
 #  - geerlingguy.php-mysql
 #  - geerlingguy.apache-php-fpm

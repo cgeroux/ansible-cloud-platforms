@@ -1,0 +1,4 @@
+---
+path: "{{ ansible_env.HOME }}"
+pass_id: test
+pass_len: 16
