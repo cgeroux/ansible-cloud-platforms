@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Including requirements
+      include_vars: 
+        file: "./requirements2.yml"
+        name: requirements
+    - git:
+        repo: "{{item.src}}"
+        dest: "./roles/{{item.name}}"
+        version: "{{item.version}}"
+      with_items: "{{requirements.requirements}}"

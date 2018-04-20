@@ -1,0 +1,26 @@
+---
+requirements:
+- src: https://github.com/geerlingguy/ansible-role-ntp.git
+  version: 6a15884e9a6e05a9616b4c802251ffa3b1bc4d45
+  name: geerlingguy.ntp
+- src: https://github.com/geerlingguy/ansible-role-mysql.git
+  version: 68fad51556dc372c438b9bd0e220c0d20cf6252d
+  name: geerlingguy.mysql
+- src: https://github.com/weareinteractive/ansible-openssl.git
+  version: 01a4007e937a7c103cb938bbeb17f79a81d423d3
+  name: weareinteractive.openssl
+- src: https://github.com/geerlingguy/ansible-role-apache.git
+  version: 88b469048a937ea0c7c5a55665d239ebf0418c5a
+  name: geerlingguy.apache
+- src: https://github.com/ComputeCanada/ansible-role-php.git
+  version: HEAD
+  name: geerlingguy.php
+- src: https://github.com/geerlingguy/ansible-role-php-mysql.git
+  version: 49e9f688288deaf69ff73aa3b5bfe67b5cd16b34
+  name: geerlingguy.php-mysql
+- src: https://github.com/geerlingguy/ansible-role-apache-php-fpm.git
+  version: 8cc3ba08c2d180f6502d72dbaaecaddcf53210cb
+  name: geerlingguy.apache-php-fpm
+- src: https://github.com/ComputeCanada/ansible-role-wordpress.git
+  version: HEAD
+  name: wordpress
