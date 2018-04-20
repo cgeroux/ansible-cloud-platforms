@@ -11,7 +11,7 @@
 - src: https://github.com/geerlingguy/ansible-role-apache.git
   version: 88b469048a937ea0c7c5a55665d239ebf0418c5a
   name: apache
-- src: https://github.com/geerlingguy/ansible-role-php.git
+- src: https://github.com/ComputeCanada/ansible-role-php.git
   version: 5a5bbe0a8d6dfbfa774d7271f6077ed30a6ab7c2
   name: php
 - src: https://github.com/geerlingguy/ansible-role-php-mysql.git

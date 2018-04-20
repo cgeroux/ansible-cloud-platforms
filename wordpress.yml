@@ -5,11 +5,15 @@
   
   pre_tasks:
     
+    #note this installation of python2 only works on Ubuntu VMs
     - name: Install python2 for Ansible
       raw: bash -c "test -e /usr/bin/python || (apt -qqy update && apt install -qqy python-minimal)"
       register: output
-      changed_when: output.stdout != ""
-      
+      changed_when:
+        - output.stdout !=""
+        - output.stdout !="\r\n"
+      when: inventory_hostname in groups['ubuntu']
+    
     - name: Gathering Facts
       setup:
   
@@ -30,8 +34,6 @@
           - "./vars/{{ ansible_distribution }}_mysql.yml"
           - "./vars/{{ ansible_os_family }}_mysql.yml"
           - "./vars/mysql.yml"
-    - debug:
-        msg: "mysql_packages={{mysql_packages}}"
     
     - name: "Load role variables for wordpress play"
       include_vars: "./vars/wordpress/{{ item }}.yml"
@@ -49,7 +51,7 @@
     - set_fact:
         mysql_root_password: "{{ passwords.mysql_root }}"
     
-    - name: "Get mysql password from password-file"
+    - name: "Get mysql wordpress password from password-file"
       include_role: 
         name: password-file
       vars:
@@ -62,8 +64,6 @@
         tmp: '{"password":"{{ passwords.mysql_wordpress }}" }'
     - set_fact:
         mysql_users: "[ {{ mysql_users[0]|combine( tmp ) }} ]"
-    - debug:
-        msg: "mysql_users={{ mysql_users }}"
       
     - name: "Load OS specific variables for php role as needed for wordpress play"
       include_vars: "{{ item }}"
@@ -77,8 +77,27 @@
   roles:
     - append-hostname
     - geerlingguy.apache
-    - franklinkim.openssl
+    - weareinteractive.openssl
     - geerlingguy.php
     - geerlingguy.mysql
-#  - geerlingguy.php-mysql
-#  - geerlingguy.apache-php-fpm
+    - geerlingguy.php-mysql
+    - geerlingguy.apache-php-fpm
+#    - wordpress
+    
+#Ubuntu packages from heat/cloud-init
+#- apache2 (DONE -> apache)
+#- mysql-server (DONE -> mysql-server)
+#- php (DONE -> php)
+#- php-dev (DONE -> php)
+#- libapache2-mod-php (DONE -> php)
+#- php-mcrypt (DONE -> php)
+#- php-mysql (DONE -> php)
+#- php-curl (DONE -> php)
+#- php-gd (DONE -> php)
+#- php-mbstring (DONE -> php)
+#- php-xml (DONE -> php)
+#- php-xmlrpc (DONE -> php)
+#- php-fpm (DONE -> php)
+#- libssh2-1-dev
+#- fail2ban
+#- software-properties-common

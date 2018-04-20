@@ -3,23 +3,21 @@
   stat: 
     path: "{{ path }}/{{ pass_id }}_pass.txt"
   register: pass_file_stat
+  
 - name: "Create password file"
   shell: "echo $(tr -dc _A-Za-z0-9 < /dev/urandom | head -c{{ pass_len }})>{{ path }}/{{ pass_id }}_pass.txt"
   when: pass_file_stat['stat']['exists']==false
-- debug:
-    msg: "Password file={{ path }}/{{ pass_id }}_pass.txt"
+  
 - name: "Get password from file"
   slurp:
     src: "{{ path }}/{{ pass_id }}_pass.txt"
   register: tmp
+  
 - set_fact:
     passwords: {}
   when: passwords is not defined
-- debug:
-    msg: "passwords={{passwords}}"
+  
 - set_fact:
     tmp2: '{"{{pass_id}}":"{{tmp.content | b64decode | trim }}"}'
 - set_fact:
     passwords: '{{ passwords|combine(tmp2)}}'
-- debug:
-    msg: "passwords={{passwords}}"

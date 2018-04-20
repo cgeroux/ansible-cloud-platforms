@@ -10,3 +10,13 @@ php_packages:
 - php-gd
 - php-xml
 - libapache2-mod-php
+- php-mcrypt
+- php-curl
+- php-mysql
+- php-mbstring
+- php-xmlrpc
+- php-fpm
+- php-pear
+php_pecl_extensions:
+- install_name: ssh2-1.1.2
+  extension_name: ssh2.so

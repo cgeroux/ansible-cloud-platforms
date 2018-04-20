@@ -1,13 +1,13 @@
 ---
 - name: Get public IP of VM
   uri:
-    url: http://169.254.169.254/latest/meta-data/public-ipv4
+    url: http://ipv4.icanhazip.com 
     return_content: yes
   register: server_public_ip_all
 
 - name: Get only the content of the previous request
   set_fact:
-    server_public_ip: "{{ server_public_ip_all['content'] }}"
+    server_public_ip: "{{ server_public_ip_all['content'] | trim}}"
 
 - name: Construct Compute Canada's default FQDN
   set_fact:
@@ -18,12 +18,12 @@
   set_fact:
     server_fqdn: "{{ server_fqdn_CC }}"
   when: domain_name is undefined
-    
+
 - name: Set FQDN from given domain name if specified
   set_fact:
     server_fqdn: "{{ domain_name }}"
   when: domain_name is defined
-  
+
 - name: Ensure FQDN correctly set in /etc/hosts
   lineinfile:
     path: "/etc/hosts"
